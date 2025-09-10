@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  postiz:
+    image: ghcr.io/gitroomhq/postiz:latest
+    container_name: postiz
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # URL pubblica dell'app
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+      # Redis (Upstash)
+      REDIS_URL: "redis://:<PASSWORD>@<UPSTASH_HOST>:<PORT>"
+
+      # Postgres (Supabase)
+      DATABASE_URL: "postgresql://<USER>:<PASSWORD>@<SUPABASE_HOST>:5432/<DBNAME>"
+
+      # Chiave JWT (puoi generarne una con `openssl rand -base64 32`)
+      JWT_SECRET: "metti_qui_una_chiave_lunga_e_sicura"
+
+      # Altre variabili richieste da Postiz (vedi documentazione)
+      NODE_ENV: "production"
