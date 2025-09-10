@@ -1,24 +1,42 @@
 version: "3.8"
 
 services:
-  postiz:
-    image: ghcr.io/gitroomhq/postiz:latest
-    container_name: postiz
+  postiz-postgres:
+    image: postgres:17-alpine
+    container_name: postiz-postgres
     restart: always
+    environment:
+      POSTGRES_PASSWORD: postiz-local-pwd
+      POSTGRES_USER: postiz-local
+      POSTGRES_DB: postiz-db-local
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - postiz-network
+
+  postiz-app:
+    image: ghcr.io/gitroomhq/postiz-app:latest
+    container_name: postiz-app
+    depends_on:
+      - postiz-postgres
     ports:
       - "3000:3000"
     environment:
-      # URL pubblica dell'app
-      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
-
-      # Redis (Upstash)
-      REDIS_URL: "redis://:<PASSWORD>@<UPSTASH_HOST>:<PORT>"
-
-      # Postgres (Supabase)
-      DATABASE_URL: "postgresql://<USER>:<PASSWORD>@<SUPABASE_HOST>:5432/<DBNAME>"
-
-      # Chiave JWT (puoi generarne una con `openssl rand -base64 32`)
-      JWT_SECRET: "metti_qui_una_chiave_lunga_e_sicura"
-
-      # Altre variabili richieste da Postiz (vedi documentazione)
       NODE_ENV: "production"
+      SESSION_SECRET: "una-chiave-segreta-molto-lunga-e-complessa-1234567890"
+      DATABASE_URL: "postgresql://postiz-local:postiz-local-pwd@postiz-postgres:5432/postiz-db-local"
+      REDIS_URL: "rediss://default:AStTAAIncDFhOWU3NzQ1ZDViYzY0YWE5YWM1NjZkMTRmNDQ0NDFhY3AxMTEwOTE@feasible-condor-11091.upstash.io:6379"
+      APP_URL: "http://80.225.87.119:3000"
+    restart: always
+    networks:
+      - postiz-network
+
+volumes:
+  postgres-volume:
+
+networks:
+  postiz-network:
+    driver: bridge
+
